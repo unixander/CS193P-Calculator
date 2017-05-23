@@ -42,7 +42,9 @@ class ViewController: UIViewController {
     @IBAction func touchDigit(_ sender: UIButton) {
         let digit:String = sender.currentTitle!
         if userIsTyping {
-            screenContent += digit
+            if digit != "." || !screenContent.contains(digit) {
+                screenContent += digit
+            }
         } else if digit == "." {
             screenContent = "0\(digit)"
         } else {
