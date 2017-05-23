@@ -12,16 +12,25 @@ class ViewController: UIViewController {
     
     @IBOutlet weak var outputScreen: UILabel!
     
-    var userIsTyping:Bool = false
+    var userIsTyping:Bool = false,
+        previousNumber:Double = 0,
+        currentOperation:String?
+    
     var formatter:NumberFormatter {
         let format = NumberFormatter()
-        format.minimumFractionDigits = 0
+        format.minimumSignificantDigits = 0
         return format
     }
     
-    var previousNumber:Double = 0
-    var currentOperation:String?
-    var screenContent:Double {
+    var screenContent:String {
+        get {
+            return outputScreen.text!
+        }
+        set (input) {
+            outputScreen.text = input
+        }
+    }
+    var screenValue:Double {
         get {
             return Double(outputScreen.text!)!
         }
@@ -32,16 +41,18 @@ class ViewController: UIViewController {
 
     @IBAction func touchDigit(_ sender: UIButton) {
         let digit:String = sender.currentTitle!
-        if (userIsTyping) {
-            screenContent = screenContent * 10 + Double(digit)!
+        if userIsTyping {
+            screenContent += digit
+        } else if digit == "." {
+            screenContent = "0\(digit)"
         } else {
-            screenContent = Double("\(digit)")!
+            screenContent = digit
             userIsTyping = true
         }
     }
     
     func calculate(first:Double, with operation:String?, second:Double) -> Double? {
-        if (operation == nil) {
+        if operation == nil {
             return second
         }
         switch (operation!) {
@@ -57,6 +68,10 @@ class ViewController: UIViewController {
                 return first - second
             case "+":
                 return first + second
+            case "%":
+                return first / 100.0 * second
+            case "^":
+                return pow(first, second)
             default:
                 return second
         }
@@ -66,19 +81,21 @@ class ViewController: UIViewController {
     @IBAction func touchAction(_ sender: UIButton) {
         userIsTyping = false
         switch (sender.currentTitle!) {
-            case "*", "/", "-", "+":
+            case "*", "/", "-", "+", "%", "^":
                 currentOperation = sender.currentTitle!
-                previousNumber = screenContent
+                previousNumber = screenValue
             case "=":
-                var result = self.calculate(first: previousNumber, with: currentOperation, second: screenContent)
-                if (result != nill) {
-                    screenContent = result
-                    previousNumber = result
+                let result = self.calculate(first: previousNumber, with: currentOperation, second: screenValue)
+                if result != nil {
+                    screenValue = result!
+                    previousNumber = result!
                 }
             case "C":
-                screenContent = 0
                 previousNumber = 0
                 currentOperation = nil
+                fallthrough
+            case "CE":
+                screenValue = 0
             default:
                 break
         }
