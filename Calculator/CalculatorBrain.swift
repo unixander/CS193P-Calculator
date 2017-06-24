@@ -18,25 +18,31 @@ struct CalculatorBrain {
         case unaryOperation((Double) -> Double)
         case binaryOperation((Double, Double) -> Double)
         case equals
+        case clearOperation(Bool)
     }
     
     private var operations: Dictionary<String,Operation> = [
         "cos": Operation.unaryOperation(cos),
-        "sin": Operation.unaryOperation(cos),
+        "sin": Operation.unaryOperation(sin),
         "*": Operation.binaryOperation({ $0 * $1 }),
         "+": Operation.binaryOperation({ $0 + $1 }),
         "-": Operation.binaryOperation({ $0 - $1 }),
         "/": Operation.binaryOperation({ $0 / $1 }),
         "^": Operation.binaryOperation({ pow($0, $1) }),
         "=": Operation.equals,
-        "C": Operation.constant(0),
-        "CE": Operation.constant(0),
+        "C": Operation.clearOperation(false),
+        "CE": Operation.clearOperation(true),
         "√": Operation.unaryOperation(sqrt)
     ]
     
     mutating func performOperation(_ symbol: String) {
         if let operation = operations[symbol] {
             switch operation {
+            case .clearOperation(let clear):
+                accumulator = 0
+                if clear {
+                    pendingBinaryOperation = nil
+                }
             case .constant(let value):
                 accumulator = value
             case .unaryOperation(let function):
